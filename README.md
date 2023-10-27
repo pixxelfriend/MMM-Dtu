@@ -1,6 +1,6 @@
-# MMM-Luftdaten
+# MMM-Dtu
 
-This is a [Magic Mirror²](https://magicmirror.builders/) module which displays data of your solar energy inverter which is collected by `AhoiDTU` custom DT. It fetches the data regulary from [Luftdaten.info](https://luftdaten.info/) and displays it right on your mirror. The module should support any kind of temperature and particular matter sensor, aso long as they are listed on Luftdaten.info
+This is a [Magic Mirror²](https://magicmirror.builders/) module which displays data of your solar energy inverter which is collected by `AhoiDTU` custom DTU.
 
 ![MMM-DTU](/screenshots/mmm-luftdaten.png) ![MMM-Luftdaten-Border](/screenshots/mmm-luftdaten-border.png)
 
@@ -22,6 +22,5 @@ config: {
 	hostname: "192.168.0.55",
 	inverters: [0,1],
 	fetchInterval: 2,
-
 }
 ```
