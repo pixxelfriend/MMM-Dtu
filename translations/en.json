@@ -1,0 +1,7 @@
+{
+    "online": "Online",
+    "offline": "Offline",
+    "idle": "Idle",
+    "CONNECTING": "connecting...",
+    "CONNECTION_ERROR": "Connection Error. Please check your logs!"
+}

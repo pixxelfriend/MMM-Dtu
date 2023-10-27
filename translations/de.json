@@ -1,0 +1,7 @@
+{
+    "online": "Online",
+    "offline": "Offline",
+    "idle": "Leerlauf",
+    "CONNECTING": "Verbinde...",
+    "CONNECTION_ERROR": "Verbindungsfehler. Bitte Logs prüfen"
+}

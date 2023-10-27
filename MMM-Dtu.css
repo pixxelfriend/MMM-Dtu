@@ -1,0 +1,32 @@
+.MMM-DTU {
+    border-radius: 10px;
+    font-size: 0.8rem;
+    line-height: 1.2rem;
+    min-width: 300px;
+}
+
+.MMM-DTU.border {
+    border: 1px solid #3c3c3b;
+}
+
+.MMM-DTU .body {
+    padding: 0 1rem;
+}
+
+.MMM-DTU .header,
+.MMM-DTU .footer {
+    font-size: 1rem;
+    line-height: 1rem;
+    padding: 0.25rem;
+    text-align: center;
+}
+
+.MMM-DTU .header {
+    color: #fff;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #3c3c3b;
+}
+.MMM-DTU .footer {
+    font-size: 0.8rem;
+    border-top: 1px solid #3c3c3b;
+}

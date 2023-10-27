@@ -1,0 +1,67 @@
+<div class="MMM-DTU {{ borderClass }}">
+    <div class="header">
+        <i class="fas fa-sun"></i>
+        Solarproduktion
+    </div>
+    <div class="body">
+        <table>
+            <thead>
+                <tr>
+                    <th></th>
+                    {% for inverter in inverters %}
+                        <th>{{ inverter.name }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tr>
+                <td>Aktuell DC</td>
+                {% for inverter in inverters %}
+                    <td>{{ inverter.values.P_DC }}</td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Einspeisung</td>
+                {% for inverter in inverters %}
+                    <td>{{ inverter.values.P_AC }}</td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Heute</td>
+                {% for inverter in inverters %}
+                    <td>{{ inverter.values.YieldDay }}</td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Total</td>
+                {% for inverter in inverters %}
+                    <td>{{ inverter.values.YieldTotal }}</td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Update</td>
+                {% for inverter in inverters %}
+                    <td>{{ inverter.lastUpdate }}</td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>Status</td>
+                {% for inverter in inverters %}
+                    <td>{{ text[inverter.status] }}</td>
+                {% endfor %}
+            </tr>
+        </table>
+    </div>
+    <div class="footer">
+        {% if connected %}
+            <i class="fas fa-history"></i>
+            {{ lastUpdate }}
+        {% endif %}
+        {% if not connected %}
+            <i class="fas fa-history"></i>
+            {{ text.CONNECTING }}
+        {% endif %}
+        {% if error %}
+            <br/> {{ text.CONNECTION_ERROR }}
+        {% endif %}
+    </div>
+</div>
