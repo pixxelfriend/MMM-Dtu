@@ -1,7 +1,7 @@
 Module.register("MMM-Dtu", {
   //default module config
   defaults: {
-    inverter: [],
+    inverter: [0],
     inverterData: [],
     fetchInterval: 1, // update intervall in minutes
     timeOnly: false,
