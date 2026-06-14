@@ -1,8 +1,8 @@
 var NodeHelper = require("node_helper");
 // const AbortController = require("abort-controller");
 
-const ApiLive = "/api/live";
-const ApiInverter = "/api/inverter/id/";
+const API_PATH_LIVE = "/api/live";
+const API_PATH_INVERTER = "/api/inverter/id/";
 
 module.exports = NodeHelper.create({
   moduleName: "MMM-Dtu",
@@ -64,7 +64,7 @@ module.exports = NodeHelper.create({
   },
   // Update Sensor Data.
   updateInverterData: function (data) {
-    console.log("INVERTER DATA; ", data);
+    //console.log("INVERTER DATA; ", data);
 
     const { fieldNames, fieldUnits } = this.state;
     const valuePairs = data.ch[0].reduce((result, value, index) => {
@@ -86,7 +86,7 @@ module.exports = NodeHelper.create({
   },
   async setFieldNames() {
     const { protocol, hostname } = this.state;
-    const url = protocol + hostname + ApiLive;
+    const url = protocol + hostname + API_PATH_LIVE;
     const instance = this;
     console.log(`${this.moduleName}: setFieldNames fetchData from ${url}`);
     try {
@@ -105,9 +105,8 @@ module.exports = NodeHelper.create({
     }
   },
   async fetchApiData(id) {
-    console.log("fetchApiData");
     const { protocol, hostname } = this.state;
-    const url = protocol + hostname + ApiInverter + id;
+    const url = protocol + hostname + API_PATH_INVERTER + id;
     console.log(`${this.moduleName}: fetchApiData fetchData from ${url}`);
 
     const instance = this;
