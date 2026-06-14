@@ -2,9 +2,11 @@
 
 This is a [Magic Mirror²](https://magicmirror.builders/) module which displays data of your solar energy inverter which is collected by `AhoiDTU` custom DTU.
 
-![MMM-DTU](/screenshots/mmm-luftdaten.png) ![MMM-Luftdaten-Border](/screenshots/mmm-luftdaten-border.png)
+![MMM-DTU-INVERTER](/screenshots/mmm-dtu-inverter.png)
+![MMM-DTU-NO-BORDER](/screenshots/mmm-dtu-no-border.png)
+![MMM-DTU-TWO-INVERTER](/screenshots/mmm-dtu-2-inverter.png)
 
-### Configuration
+## Configuration
 
 | Option          | Default     | Description                                                                                                                                                                                                     |
 | --------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -15,12 +17,12 @@ This is a [Magic Mirror²](https://magicmirror.builders/) module which displays 
 | withBorder      | `true`      | Display a border around the module                                                                                                                                                                              |
 |  borderClass    |  `border`   | Default CSS class name of the border.                                                                                                                                                                           |
 
-### Configuration Example
+## Configuration Example
 
 ```javascript
 config: {
-	hostname: "192.168.0.55",
-	inverters: [0,1],
-	fetchInterval: 2,
+  hostname: "192.168.0.55",
+  inverters: [0,1],
+  fetchInterval: 2,
 }
 ```
