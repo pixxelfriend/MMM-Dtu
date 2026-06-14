@@ -1,7 +1,7 @@
 <div class="MMM-DTU {{ borderClass }}">
     <div class="header">
         <i class="fas fa-sun"></i>
-        Solarproduktion
+        {{ text.SOLAR_PRODUCTION }}
     </div>
     <div class="body">
         <table>
@@ -14,37 +14,37 @@
                 </tr>
             </thead>
             <tr>
-                <td>Aktuell DC</td>
+                <td>{{ text.CURRENT_DC }}</td>
                 {% for inverter in inverters %}
                     <td>{{ inverter.values.P_DC }}</td>
                 {% endfor %}
             </tr>
             <tr>
-                <td>Einspeisung</td>
+                <td>{{ text.FEED_IN }}</td>
                 {% for inverter in inverters %}
                     <td>{{ inverter.values.P_AC }}</td>
                 {% endfor %}
             </tr>
             <tr>
-                <td>Heute</td>
+                <td>{{ text.TODAY }}</td>
                 {% for inverter in inverters %}
                     <td>{{ inverter.values.YieldDay }}</td>
                 {% endfor %}
             </tr>
             <tr>
-                <td>Total</td>
+                <td>{{ text.TOTAL }}</td>
                 {% for inverter in inverters %}
                     <td>{{ inverter.values.YieldTotal }}</td>
                 {% endfor %}
             </tr>
             <tr>
-                <td>Update</td>
+                <td>{{ text.UPDATE }}</td>
                 {% for inverter in inverters %}
                     <td>{{ inverter.lastUpdate }}</td>
                 {% endfor %}
             </tr>
             <tr>
-                <td>Status</td>
+                <td>{{ text.STATUS }}</td>
                 {% for inverter in inverters %}
                     <td>{{ text[inverter.status] }}</td>
                 {% endfor %}

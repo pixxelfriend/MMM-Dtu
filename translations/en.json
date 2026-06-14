@@ -3,5 +3,12 @@
     "offline": "Offline",
     "idle": "Idle",
     "CONNECTING": "connecting...",
-    "CONNECTION_ERROR": "Connection Error. Please check your logs!"
+    "CONNECTION_ERROR": "Connection Error. Please check your logs!",
+    "SOLAR_PRODUCTION": "Solar Production",
+    "CURRENT_DC": "Current DC",
+    "FEED_IN": "Feed-in",
+    "TODAY": "Today",
+    "TOTAL": "Total",
+    "UPDATE": "Update",
+    "STATUS": "Status"
 }

@@ -11,7 +11,7 @@ More information can be found on [The official AhoiDTU Homepage](https://ahoydtu
 
 | Option          | Default     | Description                                                                                        |
 | --------------- | ----------- | -------------------------------------------------------------------------------------------------- |
-| inverters       | `[0]`       | Comma seperated list of your inverters. For two inverters use `[0,1]`                              |
+| inverters       | `[0]`       | Comma separated list of your inverters. For two inverters use `[0,1]`                              |
 | hostname        | `undefined` | The hostname or IP of your AhoiDTU                                                                 |
 | fetchInterval   | `1`         | Update interval in minutes.                                                                        |
 | timeOnly        | `false`     | Display time without date. Setting this to true will hide the date.                                |

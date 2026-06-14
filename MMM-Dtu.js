@@ -1,15 +1,11 @@
 Module.register("MMM-Dtu", {
   //default module config
   defaults: {
-    inverter: [0],
-    inverterData: [],
-    fetchInterval: 1, // update intervall in minutes
+    inverters: [0],
+    fetchInterval: 1, // update interval in minutes
     timeOnly: false,
     withBorder: true,
-    lastUpdate: null,
-    borderClass: "border",
-    connected: false,
-    error: false
+    borderClass: "border"
   },
 
   // Define required scripts.
@@ -36,33 +32,42 @@ Module.register("MMM-Dtu", {
 
   // Override start method.
   start: function () {
-    this.defaults = {
-      ...this.defaults,
-      ...this.config
-    };
-    const { inverter, hostname, fetchInterval } = this.defaults;
+    let inverters = this.config.inverters || this.config.inverter || [0];
+    if (!Array.isArray(inverters)) {
+      inverters = [inverters];
+    }
+    this.inverters = inverters;
+    this.inverterData = {};
+    this.lastUpdate = null;
+    this.connected = false;
+    this.error = false;
 
     this.sendSocketNotification("MMM-DTU-SETUP", {
-      hostname,
-      inverter,
-      fetchInterval
+      identifier: this.identifier,
+      hostname: this.config.hostname,
+      inverters: this.inverters,
+      fetchInterval: this.config.fetchInterval
     });
   },
+
   // Override socket notification handler.
   socketNotificationReceived: function (notification, payload) {
-    if (payload.lastUpdate) {
-      this.defaults.lastUpdate = payload.lastUpdate;
+    if (!payload || payload.identifier !== this.identifier) {
+      return;
     }
+
+    if (payload.lastUpdate) {
+      this.lastUpdate = payload.lastUpdate;
+    }
+
     if (notification === "INVERTER_DATA_RECEIVED") {
-      // console.log("INVERTER_DATA_RECEIVED", payload.inverterData);
       if (payload.inverterData) {
-        this.defaults.error = false;
-        this.defaults.connected = true;
-        this.defaults.lastUpdate = payload.inverterData[0].lastUpdate;
-        this.defaults.inverterData = [...payload.inverterData];
+        this.error = false;
+        this.connected = true;
+        this.inverterData = { ...payload.inverterData };
       }
     } else if (notification === "SENSOR_DATA_CONNECTION_ERROR") {
-      this.defaults.error = true;
+      this.error = true;
     } else {
       Log.log(
         `MMM-DTU received an unknown socket notification: ${notification}`
@@ -70,18 +75,34 @@ Module.register("MMM-Dtu", {
     }
     this.updateDom(this.config.animationSpeed);
   },
+
   getTemplateData: function () {
-    const data = {
-      inverters: this.defaults.inverterData.map((it) => ({
-        ...it,
-        lastUpdate: this.formatDate(it.lastUpdate, true),
-        status: this.getStatus(it)
-      })),
-      lastUpdate: this.formatDate(this.defaults.lastUpdate),
-      borderClass: this.defaults.withBorder ? this.defaults.borderClass : "",
-      connected: this.defaults.connected,
-      error: this.defaults.error,
+    const invertersList = this.inverters
+      .map((id) => {
+        const it = this.inverterData[id];
+        if (!it) return null;
+        return {
+          ...it,
+          lastUpdate: this.formatDate(it.lastUpdate, true),
+          status: this.getStatus(it)
+        };
+      })
+      .filter(Boolean);
+
+    return {
+      inverters: invertersList,
+      lastUpdate: this.formatDate(this.lastUpdate),
+      borderClass: this.config.withBorder ? this.config.borderClass : "",
+      connected: this.connected,
+      error: this.error,
       text: {
+        SOLAR_PRODUCTION: this.translate("SOLAR_PRODUCTION"),
+        CURRENT_DC: this.translate("CURRENT_DC"),
+        FEED_IN: this.translate("FEED_IN"),
+        TODAY: this.translate("TODAY"),
+        TOTAL: this.translate("TOTAL"),
+        UPDATE: this.translate("UPDATE"),
+        STATUS: this.translate("STATUS"),
         CONNECTING: this.translate("CONNECTING"),
         CONNECTION_ERROR: this.translate("CONNECTION_ERROR"),
         offline: this.translate("offline"),
@@ -89,18 +110,21 @@ Module.register("MMM-Dtu", {
         idle: this.translate("idle")
       }
     };
-    return data;
   },
+
   getStatus(inverter) {
     if (!this.isToday(inverter.lastUpdate)) return "offline";
-    const current = parseFloat(inverter.values.P_AC.split(" "));
+    const current = parseFloat(inverter.values.P_AC);
     if (current) return "online";
     return "idle";
   },
+
   isToday(date) {
     return moment.utc(date).isSame(new Date(), "day");
   },
+
   formatDate: function (dateString, timeOnly) {
+    if (!dateString) return "";
     const format = timeOnly ? "LT" : "L LT";
     const date = moment.utc(dateString).local();
     return date.format(format);

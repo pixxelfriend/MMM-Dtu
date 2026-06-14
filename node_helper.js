@@ -1,72 +1,91 @@
 var NodeHelper = require("node_helper");
-// const AbortController = require("abort-controller");
 
 const API_PATH_LIVE = "/api/live";
 const API_PATH_INVERTER = "/api/inverter/id/";
 
 module.exports = NodeHelper.create({
-  moduleName: "MMM-Dtu",
-  state: {
-    protocol: "http://",
-    sensorApi: "http://192.168.0.146/api/inverter/id/",
-    inverterData: [],
-    inverter: [],
-    lastUpdate: null,
-    fieldNames: null,
-    fieldUnits: null
-  },
   // Override start method.
   start: function () {
-    this.fetchers = [];
+    this.states = {};
+    this.fetchers = {};
     console.log("Starting node helper for: " + this.name);
   },
+
   // Override socketNotificationReceived method.
   socketNotificationReceived: async function (notification, payload) {
     if (notification === "MMM-DTU-SETUP") {
-      var { hostname, inverter, fetchInterval } = payload;
+      const { identifier, hostname, inverters, fetchInterval } = payload;
 
-      this.state.hostname = hostname;
-      this.state.fetchInterval = fetchInterval;
-
-      if (!this.state.fieldNames) {
-        try {
-          await this.setFieldNames();
-        } catch (e) {
-          console.error("Fetching field names failed ");
+      // Clean up previous intervals for this instance if they exist
+      if (this.fetchers[identifier]) {
+        for (const id in this.fetchers[identifier]) {
+          clearInterval(this.fetchers[identifier][id]);
         }
       }
 
-      // await instance.fetchApiData(0);
-      var instance = this;
-      for (let id of inverter) {
-        if (!this.state.inverter[id]) {
-          instance.fetchApiData(id);
-          this.state.inverter[id] = setInterval(function () {
-            instance.fetchApiData(id);
-          }, this.getUpdateInterval(fetchInterval));
-        } else {
-          //when sensor already exists, directly update data on all clients
-          this.sendDataToClient();
-        }
+      this.states[identifier] = {
+        hostname,
+        inverters,
+        fetchInterval,
+        inverterData: {},
+        lastUpdate: null,
+        fieldNames: null,
+        fieldUnits: null
+      };
+
+      this.fetchers[identifier] = {};
+
+      // Try fetching field names first
+      try {
+        await this.setFieldNames(identifier);
+      } catch (e) {
+        console.error(`${this.name}: Fetching field names failed for ${identifier}`, e);
+      }
+
+      const instance = this;
+      for (const id of inverters) {
+        // Fetch immediately
+        instance.fetchApiData(identifier, id);
+        // Set up recurring update interval
+        this.fetchers[identifier][id] = setInterval(function () {
+          instance.fetchApiData(identifier, id);
+        }, fetchInterval * 60 * 1000);
       }
     }
   },
-  sendDataToClient: function () {
-    this.sendSocketNotification("INVERTER_DATA_RECEIVED", {
-      inverterData: this.state.inverterData,
-      lastUpdate: this.state.lastUpdate
-    });
-  },
-  sendErrorToClient: function () {
-    this.sendSocketNotification("SENSOR_DATA_CONNECTION_ERROR", {
-      lastUpdate: this.state.inverterData["lastUpdate"]
-    });
-  },
-  // Update Sensor Data.
-  updateInverterData: function (data) {
-    //console.log("INVERTER DATA; ", data);
 
-    const { fieldNames, fieldUnits } = this.state;
+  sendDataToClient: function (identifier) {
+    const state = this.states[identifier];
+    if (!state) return;
+
+    this.sendSocketNotification("INVERTER_DATA_RECEIVED", {
+      identifier,
+      inverterData: state.inverterData,
+      lastUpdate: state.lastUpdate
+    });
+  },
+
+  sendErrorToClient: function (identifier) {
+    const state = this.states[identifier];
+    if (!state) return;
+
+    this.sendSocketNotification("SENSOR_DATA_CONNECTION_ERROR", {
+      identifier,
+      lastUpdate: state.lastUpdate
+    });
+  },
+
+  // Update Sensor Data.
+  updateInverterData: function (identifier, data) {
+    const state = this.states[identifier];
+    if (!state) return;
+
+    const { fieldNames, fieldUnits } = state;
+    if (!fieldNames || !fieldUnits) {
+      console.warn(`${this.name}: Field names/units not loaded yet for ${identifier}`);
+      return;
+    }
+
     const valuePairs = data.ch[0].reduce((result, value, index) => {
       const name = fieldNames[index];
       const unit = fieldUnits[index];
@@ -75,56 +94,57 @@ module.exports = NodeHelper.create({
       return result;
     }, {});
 
-    this.state.lastUpdate = new Date();
-    this.state.inverterData[data.id] = {
+    state.lastUpdate = new Date();
+    state.inverterData[data.id] = {
       values: valuePairs,
       name: data.name,
       lastUpdate: new Date(data.ts_last_success * 1000)
     };
 
-    this.sendDataToClient();
+    this.sendDataToClient(identifier);
   },
-  async setFieldNames() {
-    const { protocol, hostname } = this.state;
-    const url = protocol + hostname + API_PATH_LIVE;
-    const instance = this;
-    console.log(`${this.moduleName}: setFieldNames fetchData from ${url}`);
-    try {
-      const response = await fetch(url);
-      if (response.ok) {
-        const data = await response.json();
-        this.state.fieldNames = [...data.ch0_fld_names];
-        this.state.fieldUnits = [...data.ch0_fld_units];
-      } else {
-        const error = response.text();
-        throw `No positive response ${error}`;
-      }
-    } catch (e) {
-      console.error(`${this.moduleName}: ${e}`);
-      this.sendErrorToClient();
-    }
-  },
-  async fetchApiData(id) {
-    const { protocol, hostname } = this.state;
-    const url = protocol + hostname + API_PATH_INVERTER + id;
-    console.log(`${this.moduleName}: fetchApiData fetchData from ${url}`);
 
-    const instance = this;
+  async setFieldNames(identifier) {
+    const state = this.states[identifier];
+    if (!state) return;
+
+    const url = "http://" + state.hostname + API_PATH_LIVE;
+    console.log(`${this.name}: setFieldNames fetchData from ${url}`);
     try {
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
-        instance.updateInverterData(data);
+        state.fieldNames = [...data.ch0_fld_names];
+        state.fieldUnits = [...data.ch0_fld_units];
       } else {
-        const error = response.text();
-        throw `No positive response ${error}`;
+        const error = await response.text();
+        throw new Error(`No positive response: ${error}`);
       }
     } catch (e) {
-      console.error(`${this.moduleName}: ${e}`);
-      this.sendErrorToClient();
+      console.error(`${this.name} (${identifier}): ${e.message || e}`);
+      this.sendErrorToClient(identifier);
     }
   },
-  getUpdateInterval(minutes) {
-    return minutes * 60 * 1000;
+
+  async fetchApiData(identifier, id) {
+    const state = this.states[identifier];
+    if (!state) return;
+
+    const url = "http://" + state.hostname + API_PATH_INVERTER + id;
+    console.log(`${this.name}: fetchApiData fetchData from ${url}`);
+
+    try {
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+        this.updateInverterData(identifier, data);
+      } else {
+        const error = await response.text();
+        throw new Error(`No positive response: ${error}`);
+      }
+    } catch (e) {
+      console.error(`${this.name} (${identifier}): ${e.message || e}`);
+      this.sendErrorToClient(identifier);
+    }
   }
 });
