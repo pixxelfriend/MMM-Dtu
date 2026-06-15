@@ -1,6 +1,6 @@
 # MMM-Dtu
 
-This is a [Magic Mirror²](https://magicmirror.builders/) module which displays data of your solar energy inverter which is collected by `AhoiDTU` custom DTU.
+This is a [Magic Mirror²](https://magicmirror.builders/) module which displays data of your Hoymiles solar energy inverter which is collected by `AhoiDTU` custom DTU.
 More information can be found on [The official AhoiDTU Homepage](https://ahoydtu.de/)
 
 ![MMM-DTU-INVERTER](/screenshots/mmm-dtu-inverter.png)
